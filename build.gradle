@@ -1,0 +1,62 @@
+import java.nio.file.Paths
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.30'
+}
+
+apply plugin: 'antlr'
+
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+//
+//configurations {
+//    antlr
+//    implementation.extendsFrom antlr
+//}
+
+
+// Define a new swap folder to aid this generation process.
+// This contains a mirror of the antlr *.g4 files accompanied by the lexical
+// metadata files required for successful generation of parsers (eg: *.tokens).
+File swapGrammDir = new File("${buildDir.getAbsolutePath()}/swapGenerateGrammarSource/")
+
+
+List<String> antlrBaseArgs = [
+        '-lib',          swapGrammDir.getAbsolutePath(),
+        '-package',      'grammar'
+        , '-listener'
+        , '-long-messages'
+].toList()
+
+
+dependencies {
+    antlr "org.antlr:antlr4:4.7.2"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+generateGrammarSource {
+    maxHeapSize = "4g"
+    trace = true
+    traceLexer = true
+    traceParser = true
+    traceTreeWalker = true
+    arguments += antlrBaseArgs
+}
+
+compileKotlin.dependsOn generateGrammarSource
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
